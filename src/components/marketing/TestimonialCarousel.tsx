@@ -1,15 +1,19 @@
-import { Card } from '@/components/ui/card';
 import { Star, Quote } from 'lucide-react';
+import { motion, useInView } from 'framer-motion';
+import { useRef } from 'react';
 
 export const TestimonialCarousel = () => {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true, margin: "-100px" });
+
   const testimonials = [
     {
       name: 'James & Patricia Anderson',
-      project: 'River Oaks Estate Renovation',
+      project: 'River Oaks Estate',
       type: 'Residential',
       rating: 5,
-      quote: 'Houston Enterprise transformed our historic home into a modern masterpiece while preserving its architectural soul. Their attention to detail and communication throughout the process was exceptional.',
-      image: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=400&h=400&fit=crop&crop=faces'
+      quote: 'Houston Enterprise transformed our historic home into a modern masterpiece while preserving its architectural soul. Their attention to detail and communication throughout the process was nothing short of exceptional.',
+      image: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=400&h=400&fit=crop&crop=faces',
     },
     {
       name: 'Memorial Properties LLC',
@@ -17,7 +21,7 @@ export const TestimonialCarousel = () => {
       type: 'Commercial',
       rating: 5,
       quote: 'A true partnership from start to finish. Their project management kept us on schedule and under budget while delivering a Class A building that exceeded our expectations.',
-      image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop&crop=faces'
+      image: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=400&h=400&fit=crop&crop=faces',
     },
     {
       name: 'Dr. Sarah Chen',
@@ -25,61 +29,108 @@ export const TestimonialCarousel = () => {
       type: 'Commercial',
       rating: 5,
       quote: 'The team understood the unique requirements of medical facilities. They navigated complex code requirements seamlessly and delivered a space that perfectly serves our patients.',
-      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=faces'
-    }
+      image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=400&h=400&fit=crop&crop=faces',
+    },
   ];
 
   return (
-    <section className="py-24 bg-primary text-primary-foreground overflow-hidden">
-      <div className="container mx-auto px-4">
-        <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="text-accent font-semibold text-sm uppercase tracking-wider mb-3">
-            Client Testimonials
-          </div>
-          <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Trusted by Houston's Best
+    <section ref={ref} className="py-32 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 gradient-luxury" />
+      <div className="absolute inset-0 noise" />
+      <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-accent/30 to-transparent" />
+      
+      {/* Accent lighting */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-accent/5 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="container mx-auto px-4 relative z-10">
+        {/* Section Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8 }}
+          className="text-center max-w-3xl mx-auto mb-20"
+        >
+          <span className="eyebrow text-accent">Testimonials</span>
+          <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6">
+            Trusted by Houston's <span className="text-gradient">Finest</span>
           </h2>
-          <p className="text-lg text-primary-foreground/80">
-            Don't just take our word for it. Here's what our clients say about their experience.
+          <p className="text-lg text-muted-foreground leading-relaxed">
+            Our clients' success stories speak to the relationships we build and the excellence we deliver.
           </p>
-        </div>
+        </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {/* Testimonials Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {testimonials.map((testimonial, index) => (
-            <Card
+            <motion.div
               key={index}
-              className="p-8 bg-card text-card-foreground hover-lift"
-              style={{ animationDelay: `${index * 100}ms` }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={isInView ? { opacity: 1, y: 0 } : {}}
+              transition={{ duration: 0.8, delay: index * 0.15 }}
+              className="group"
             >
-              <Quote className="h-10 w-10 text-accent mb-6" />
-              
-              {/* Rating */}
-              <div className="flex gap-1 mb-4">
-                {[...Array(testimonial.rating)].map((_, i) => (
-                  <Star key={i} className="h-5 w-5 fill-accent text-accent" />
-                ))}
-              </div>
+              <div className="glass rounded-2xl p-8 h-full flex flex-col border-glow">
+                {/* Quote Icon */}
+                <div className="mb-6">
+                  <div className="inline-flex p-3 rounded-xl bg-accent/10">
+                    <Quote className="h-6 w-6 text-accent" />
+                  </div>
+                </div>
+                
+                {/* Rating */}
+                <div className="flex gap-1 mb-6">
+                  {[...Array(testimonial.rating)].map((_, i) => (
+                    <Star key={i} className="h-5 w-5 fill-accent text-accent" />
+                  ))}
+                </div>
 
-              <p className="text-foreground mb-6 leading-relaxed italic">
-                "{testimonial.quote}"
-              </p>
+                {/* Quote */}
+                <blockquote className="text-lg text-foreground/90 leading-relaxed mb-8 flex-grow italic">
+                  "{testimonial.quote}"
+                </blockquote>
 
-              <div className="flex items-center gap-4 pt-6 border-t border-border">
-                <img
-                  src={testimonial.image}
-                  alt={testimonial.name}
-                  className="w-12 h-12 rounded-full object-cover"
-                />
-                <div>
-                  <div className="font-semibold">{testimonial.name}</div>
-                  <div className="text-sm text-muted-foreground">
-                    {testimonial.project} • {testimonial.type}
+                {/* Author */}
+                <div className="flex items-center gap-4 pt-6 border-t border-foreground/10">
+                  <div className="relative">
+                    <img
+                      src={testimonial.image}
+                      alt={testimonial.name}
+                      className="w-14 h-14 rounded-full object-cover ring-2 ring-accent/20"
+                    />
+                    <div className="absolute inset-0 rounded-full ring-2 ring-accent/20 animate-pulse-glow" />
+                  </div>
+                  <div>
+                    <div className="font-semibold text-foreground">{testimonial.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      {testimonial.project} • <span className="text-accent">{testimonial.type}</span>
+                    </div>
                   </div>
                 </div>
               </div>
-            </Card>
+            </motion.div>
           ))}
         </div>
+
+        {/* Bottom Stats */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={isInView ? { opacity: 1, y: 0 } : {}}
+          transition={{ duration: 0.8, delay: 0.6 }}
+          className="mt-20 grid grid-cols-2 md:grid-cols-4 gap-8"
+        >
+          {[
+            { value: '98%', label: 'Client Satisfaction' },
+            { value: '500+', label: 'Projects Completed' },
+            { value: '85%', label: 'Repeat Clients' },
+            { value: '4.9/5', label: 'Average Rating' },
+          ].map((stat, i) => (
+            <div key={i} className="text-center">
+              <div className="text-4xl md:text-5xl font-display font-bold text-gradient mb-2">{stat.value}</div>
+              <div className="text-sm text-muted-foreground uppercase tracking-wider">{stat.label}</div>
+            </div>
+          ))}
+        </motion.div>
       </div>
     </section>
   );
