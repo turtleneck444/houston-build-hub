@@ -1,13 +1,24 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Building2, Menu, X } from 'lucide-react';
-import { useState } from 'react';
+import { Menu, X, ArrowUpRight } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { getCurrentUser, logout, isAdmin } from '@/services/auth';
+import { motion, AnimatePresence } from 'framer-motion';
 
 export const Header = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
   const user = getCurrentUser();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setScrolled(window.scrollY > 50);
+    };
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -23,49 +34,75 @@ export const Header = () => {
     { label: 'Contact', path: '/contact' },
   ];
 
+  const isActive = (path: string) => location.pathname === path;
+
   return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-card/95 backdrop-blur-sm border-b border-border">
-      <nav className="container mx-auto px-4 py-4">
+    <header
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
+        scrolled
+          ? 'glass-strong py-3'
+          : 'bg-transparent py-6'
+      }`}
+    >
+      <nav className="container mx-auto px-4">
         <div className="flex items-center justify-between">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
-            <Building2 className="h-8 w-8 text-accent" />
-            <div className="flex flex-col">
-              <span className="text-xl font-bold text-foreground">Houston Enterprise</span>
-              <span className="text-xs text-muted-foreground">Construction Excellence</span>
+          <Link to="/" className="group flex items-center gap-3 hover:opacity-90 transition-all">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-xl gradient-accent flex items-center justify-center">
+                <span className="font-display text-2xl font-bold text-accent-foreground">H</span>
+              </div>
+              <div className="absolute inset-0 rounded-xl gradient-accent opacity-50 blur-lg group-hover:opacity-70 transition-opacity" />
+            </div>
+            <div className="hidden sm:flex flex-col">
+              <span className="text-lg font-display font-semibold text-foreground tracking-tight">Houston Enterprise</span>
+              <span className="text-xs text-muted-foreground tracking-widest uppercase">Construction Excellence</span>
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden lg:flex items-center gap-1">
             {navLinks.map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
-                className="text-sm font-medium text-foreground hover:text-accent transition-colors"
+                className={`relative px-4 py-2 text-sm font-medium transition-colors ${
+                  isActive(link.path)
+                    ? 'text-accent'
+                    : 'text-foreground/70 hover:text-foreground'
+                }`}
               >
                 {link.label}
+                {isActive(link.path) && (
+                  <motion.div
+                    layoutId="activeNav"
+                    className="absolute bottom-0 left-4 right-4 h-0.5 bg-accent rounded-full"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
               </Link>
             ))}
           </div>
 
           {/* Desktop CTAs */}
-          <div className="hidden md:flex items-center gap-3">
+          <div className="hidden lg:flex items-center gap-3">
             {user ? (
               <>
                 {isAdmin() ? (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => navigate('/admin')}
+                    className="text-foreground/70 hover:text-foreground"
                   >
-                    Admin Dashboard
+                    Admin
                   </Button>
                 ) : (
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => navigate('/portal/dashboard')}
+                    className="text-foreground/70 hover:text-foreground"
                   >
                     My Projects
                   </Button>
@@ -74,6 +111,7 @@ export const Header = () => {
                   variant="ghost"
                   size="sm"
                   onClick={handleLogout}
+                  className="text-foreground/70 hover:text-foreground"
                 >
                   Logout
                 </Button>
@@ -81,18 +119,20 @@ export const Header = () => {
             ) : (
               <>
                 <Button
-                  variant="outline"
+                  variant="ghost"
                   size="sm"
                   onClick={() => navigate('/login')}
+                  className="text-foreground/70 hover:text-foreground"
                 >
-                  Client Login
+                  Client Portal
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => navigate('/contact')}
-                  className="bg-accent hover:bg-accent/90 text-accent-foreground"
+                  className="btn-premium gradient-accent text-accent-foreground rounded-full px-6 group"
                 >
-                  Get Started
+                  Start a Project
+                  <ArrowUpRight className="ml-1 h-4 w-4 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
                 </Button>
               </>
             )}
@@ -100,7 +140,7 @@ export const Header = () => {
 
           {/* Mobile Menu Button */}
           <button
-            className="md:hidden p-2"
+            className="lg:hidden p-2 rounded-lg hover:bg-foreground/5 transition-colors"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? (
@@ -112,78 +152,96 @@ export const Header = () => {
         </div>
 
         {/* Mobile Menu */}
-        {mobileMenuOpen && (
-          <div className="md:hidden mt-4 pb-4 space-y-3 animate-fade-in">
-            {navLinks.map((link) => (
-              <Link
-                key={link.path}
-                to={link.path}
-                className="block py-2 text-foreground hover:text-accent transition-colors"
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {link.label}
-              </Link>
-            ))}
-            <div className="pt-3 space-y-2 border-t border-border">
-              {user ? (
-                <>
-                  {isAdmin() ? (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => {
-                        navigate('/admin');
-                        setMobileMenuOpen(false);
-                      }}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.3 }}
+              className="lg:hidden overflow-hidden"
+            >
+              <div className="pt-6 pb-4 space-y-1">
+                {navLinks.map((link, i) => (
+                  <motion.div
+                    key={link.path}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: i * 0.05 }}
+                  >
+                    <Link
+                      to={link.path}
+                      className={`block py-3 text-lg font-medium transition-colors ${
+                        isActive(link.path) ? 'text-accent' : 'text-foreground/70'
+                      }`}
+                      onClick={() => setMobileMenuOpen(false)}
                     >
-                      Admin Dashboard
-                    </Button>
+                      {link.label}
+                    </Link>
+                  </motion.div>
+                ))}
+                <div className="pt-6 space-y-3 border-t border-border mt-4">
+                  {user ? (
+                    <>
+                      {isAdmin() ? (
+                        <Button
+                          variant="outline"
+                          className="w-full rounded-full"
+                          onClick={() => {
+                            navigate('/admin');
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          Admin Dashboard
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="outline"
+                          className="w-full rounded-full"
+                          onClick={() => {
+                            navigate('/portal/dashboard');
+                            setMobileMenuOpen(false);
+                          }}
+                        >
+                          My Projects
+                        </Button>
+                      )}
+                      <Button
+                        variant="ghost"
+                        className="w-full"
+                        onClick={handleLogout}
+                      >
+                        Logout
+                      </Button>
+                    </>
                   ) : (
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => {
-                        navigate('/portal/dashboard');
-                        setMobileMenuOpen(false);
-                      }}
-                    >
-                      My Projects
-                    </Button>
+                    <>
+                      <Button
+                        variant="outline"
+                        className="w-full rounded-full"
+                        onClick={() => {
+                          navigate('/login');
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        Client Portal
+                      </Button>
+                      <Button
+                        className="w-full gradient-accent text-accent-foreground rounded-full"
+                        onClick={() => {
+                          navigate('/contact');
+                          setMobileMenuOpen(false);
+                        }}
+                      >
+                        Start a Project
+                      </Button>
+                    </>
                   )}
-                  <Button
-                    variant="ghost"
-                    className="w-full"
-                    onClick={handleLogout}
-                  >
-                    Logout
-                  </Button>
-                </>
-              ) : (
-                <>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      navigate('/login');
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    Client Login
-                  </Button>
-                  <Button
-                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground"
-                    onClick={() => {
-                      navigate('/contact');
-                      setMobileMenuOpen(false);
-                    }}
-                  >
-                    Get Started
-                  </Button>
-                </>
-              )}
-            </div>
-          </div>
-        )}
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </nav>
     </header>
   );
